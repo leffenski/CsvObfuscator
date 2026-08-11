@@ -1,0 +1,70 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+            xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+            xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+            xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+            xmlns:vm="using:CsvObfuscator.ViewModels"
+            mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+            x:Class="CsvObfuscator.Views.MainView"
+            x:DataType="vm:MainViewModel">
+    <Grid RowDefinitions="Auto,Auto,*,Auto" Margin="20" RowSpacing="14">
+        <Grid ColumnDefinitions="*,Auto,Auto,Auto" ColumnSpacing="10">
+            <StackPanel Spacing="3">
+                <TextBlock Text="CSV Obfuscator" FontSize="24" FontWeight="SemiBold" />
+                <TextBlock Text="{Binding FileDescription}" Opacity="0.72" TextTrimming="CharacterEllipsis" />
+            </StackPanel>
+            <Button Grid.Column="1" Content="Open CSV…" Click="OpenCsv_Click" />
+            <Button Grid.Column="2" Content="Save obfuscated CSV…" Click="SaveCsv_Click" IsEnabled="{Binding HasDocument}" />
+            <ToggleSwitch Grid.Column="3" Content="Obfuscated view" IsChecked="{Binding IsObfuscatedView}" IsEnabled="{Binding HasObfuscatedOutput}" VerticalAlignment="Center" />
+        </Grid>
+
+        <Border Grid.Row="1" Background="{DynamicResource SystemControlHighlightLowBrush}" CornerRadius="6" Padding="12">
+            <TextBlock Text="Choose a treatment for each column. Clear is the safe default; the header row is never changed. Filters affect only this preview, not the exported CSV." TextWrapping="Wrap" />
+        </Border>
+
+        <Border Grid.Row="2" BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}" BorderThickness="1" CornerRadius="6" IsVisible="{Binding HasDocument}">
+            <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+                <StackPanel>
+                    <ItemsControl ItemsSource="{Binding Columns}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate><StackPanel Orientation="Horizontal" /></ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <StackPanel Width="{Binding Width}" Margin="5" Spacing="5">
+                                    <TextBlock Text="{Binding Header}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
+                                    <ComboBox ItemsSource="{Binding AvailableTypes}" SelectedItem="{Binding SelectedType}" />
+                                    <TextBox Text="{Binding Filter, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="Filter this column" />
+                                    <StackPanel Orientation="Horizontal" Spacing="6">
+                                        <TextBlock Text="Width" VerticalAlignment="Center" Opacity="0.7" />
+                                        <NumericUpDown Value="{Binding Width}" Minimum="90" Maximum="1000" Increment="10" Width="90" />
+                                    </StackPanel>
+                                </StackPanel>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                    <Border BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}" BorderThickness="0,1,0,0" />
+                    <ItemsControl ItemsSource="{Binding PreviewRows}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}" BorderThickness="0,0,0,1">
+                                    <ItemsControl ItemsSource="{Binding Cells}">
+                                        <ItemsControl.ItemsPanel>
+                                            <ItemsPanelTemplate><StackPanel Orientation="Horizontal" /></ItemsPanelTemplate>
+                                        </ItemsControl.ItemsPanel>
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <TextBlock Width="{Binding Column.Width}" Margin="5,4" Text="{Binding Value}" TextTrimming="CharacterEllipsis" />
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+            </ScrollViewer>
+        </Border>
+
+        <TextBlock Grid.Row="3" Text="{Binding StatusMessage}" TextWrapping="Wrap" Opacity="0.82" />
+    </Grid>
+</UserControl>

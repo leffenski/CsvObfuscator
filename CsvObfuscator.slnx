@@ -1,0 +1,11 @@
+<Solution>
+  <Project Path="CsvObfuscator.Android/CsvObfuscator.Android.csproj">
+    <Deploy />
+  </Project>
+  <Project Path="CsvObfuscator.Browser/CsvObfuscator.Browser.csproj" />
+  <Project Path="CsvObfuscator.Desktop/CsvObfuscator.Desktop.csproj" />
+  <Project Path="CsvObfuscator.iOS/CsvObfuscator.iOS.csproj">
+    <Deploy />
+  </Project>
+  <Project Path="CsvObfuscator/CsvObfuscator.csproj" />
+</Solution>
