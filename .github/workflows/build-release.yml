@@ -18,10 +18,10 @@ jobs:
             rid: win-x64
             artifact_name: CsvObfuscator.exe
             asset_name: CsvObfuscator-win-x64.exe
-          - os: macos-latest
-            rid: osx-x64
-            artifact_name: CsvObfuscator
-            asset_name: CsvObfuscator-osx-x64
+          # - os: macos-latest
+          #   rid: osx-x64
+          #   artifact_name: CsvObfuscator
+          #   asset_name: CsvObfuscator-osx-x64
 
     runs-on: ${{ matrix.os }}
 
