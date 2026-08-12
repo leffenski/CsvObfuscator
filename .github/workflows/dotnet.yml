@@ -20,9 +20,16 @@ jobs:
       uses: actions/setup-dotnet@v4
       with:
         dotnet-version: 10.0.x
+    - name: Install WebAssembly tools
+      run: dotnet workload install wasm-tools
     - name: Restore dependencies
-      run: dotnet restore --project CsvObfuscator/CsvObfuscator.csproj
-    - name: Build
-      run: dotnet build --no-restore --project CsvObfuscator.Desktop/CsvObfuscator.Desktop.csproj --project CsvObfuscator.Browser/CsvObfuscator.Browser.csproj
+      run: |
+        dotnet restore CsvObfuscator/CsvObfuscator.csproj
+        dotnet restore CsvObfuscator.Desktop/CsvObfuscator.Desktop.csproj
+        dotnet restore CsvObfuscator.Browser/CsvObfuscator.Browser.csproj
+    - name: Build Desktop
+      run: dotnet build CsvObfuscator.Desktop/CsvObfuscator.Desktop.csproj --no-restore
+    - name: Build Browser
+      run: dotnet build CsvObfuscator.Browser/CsvObfuscator.Browser.csproj --no-restore
     - name: Test
-      run: dotnet test --no-build --verbosity normal --project CsvObfuscator/CsvObfuscator.csproj
+      run: dotnet test CsvObfuscator/CsvObfuscator.csproj --no-build --verbosity normal

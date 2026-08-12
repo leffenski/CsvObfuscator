@@ -4,47 +4,93 @@ on:
   release:
     types: [created]
 
+permissions:
+  contents: write
+
 jobs:
-  build:
+  build-base:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - name: Publish base library
+        run: dotnet publish CsvObfuscator/CsvObfuscator.csproj -c Release -o publish/base
+      - name: Package base library
+        run: |
+          cd publish/base
+          zip -r ../../CsvObfuscator-base.zip .
+      - uses: actions/upload-artifact@v4
+        with:
+          name: CsvObfuscator-base
+          path: CsvObfuscator-base.zip
+      - name: Upload base library to release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh release upload "${{ github.event.release.tag_name }}" CsvObfuscator-base.zip --clobber
+
+  build-desktop:
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
         include:
           - os: ubuntu-latest
             rid: linux-x64
-            artifact_name: CsvObfuscator
-            asset_name: CsvObfuscator-linux-x64
+            executable: CsvObfuscator.Desktop
+            asset_name: CsvObfuscator-Desktop-linux-x64
           - os: windows-latest
             rid: win-x64
-            artifact_name: CsvObfuscator.exe
-            asset_name: CsvObfuscator-win-x64.exe
-          # - os: macos-latest
-          #   rid: osx-x64
-          #   artifact_name: CsvObfuscator
-          #   asset_name: CsvObfuscator-osx-x64
+            executable: CsvObfuscator.Desktop.exe
+            asset_name: CsvObfuscator-Desktop-win-x64.exe
+          - os: macos-latest
+            rid: osx-x64
+            executable: CsvObfuscator.Desktop
+            asset_name: CsvObfuscator-Desktop-osx-x64
 
     runs-on: ${{ matrix.os }}
 
     steps:
       - uses: actions/checkout@v4
-
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v4
+      - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '10.0.x'
 
-      - name: Restore dependencies
-        run: dotnet restore
-
-      - name: Build Debug
-        run: dotnet publish CsvObfuscator/CsvObfuscator.csproj -c Debug -r ${{ matrix.rid }} --self-contained -o ./publish
-
-      - name: Upload Release Asset
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Publish Desktop executable
+        run: >-
+          dotnet publish CsvObfuscator.Desktop/CsvObfuscator.Desktop.csproj
+          -c Release -r ${{ matrix.rid }} --self-contained true -o publish
+          -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true
+      - uses: actions/upload-artifact@v4
         with:
-          upload_url: ${{ github.event.release.upload_url }}
-          asset_path: ./publish/${{ matrix.artifact_name }}
-          asset_name: ${{ matrix.asset_name }}
-          asset_content_type: application/octet-stream
+          name: ${{ matrix.asset_name }}
+          path: publish/${{ matrix.executable }}
+      - name: Upload Desktop executable to release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh release upload "${{ github.event.release.tag_name }}" "publish/${{ matrix.executable }}#${{ matrix.asset_name }}" --clobber
+
+  build-browser:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - name: Install WebAssembly tools
+        run: dotnet workload install wasm-tools
+      - name: Publish Browser application
+        run: dotnet publish CsvObfuscator.Browser/CsvObfuscator.Browser.csproj -c Release -o publish/browser
+      - name: Package Browser application
+        run: |
+          cd publish/browser
+          zip -r ../../CsvObfuscator-Browser.zip .
+      - uses: actions/upload-artifact@v4
+        with:
+          name: CsvObfuscator-Browser
+          path: CsvObfuscator-Browser.zip
+      - name: Upload Browser application to release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh release upload "${{ github.event.release.tag_name }}" CsvObfuscator-Browser.zip --clobber
