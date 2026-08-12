@@ -1,0 +1,16 @@
+FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
+WORKDIR /src
+COPY Directory.Packages.props CsvObfuscator.slnx ./
+COPY CsvObfuscator/CsvObfuscator.csproj CsvObfuscator/
+COPY CsvObfuscator.Browser/CsvObfuscator.Browser.csproj CsvObfuscator.Browser/
+RUN dotnet workload install wasm-tools
+RUN dotnet restore CsvObfuscator.Browser/CsvObfuscator.Browser.csproj
+COPY CsvObfuscator/ CsvObfuscator/
+COPY CsvObfuscator.Browser/ CsvObfuscator.Browser/
+RUN dotnet publish CsvObfuscator.Browser/CsvObfuscator.Browser.csproj -c Release -o /out -p:WasmBuildNative=true --no-restore
+
+FROM nginx:1.27-alpine AS runtime
+COPY deploy/browser/nginx.conf /etc/nginx/conf.d/default.conf
+COPY --from=build /out/wwwroot/ /usr/share/nginx/html/
+EXPOSE 8080
+HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 CMD wget --no-verbose --tries=1 --spider http://127.0.0.1:8080/healthz || exit 1

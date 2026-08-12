@@ -1,0 +1,33 @@
+replicaCount: 2
+image:
+  repository: csv-obfuscator-browser
+  tag: latest
+  pullPolicy: IfNotPresent
+service:
+  type: ClusterIP
+  port: 80
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+  hosts:
+    - host: csv-obfuscator.local
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: []
+resources: {}
+podSecurityContext:
+  runAsNonRoot: true
+  seccompProfile:
+    type: RuntimeDefault
+securityContext:
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop: [ALL]
+  readOnlyRootFilesystem: true
+  runAsNonRoot: true
+  runAsUser: 101
+nodeSelector: {}
+tolerations: []
+affinity: {}

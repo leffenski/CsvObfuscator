@@ -7,9 +7,9 @@ public sealed class Obfuscator
 {
     const string Vowels = "aeiouy";
     const string Consonants = "bcdfghjklmnpqrstvwxz";
+    readonly Dictionary<(ObfuscationType Type, string Value), string> _cache = [];
 
     readonly Random _random = new();
-    readonly Dictionary<(ObfuscationType Type, string Value), string> _cache = [];
 
     public string Transform(ObfuscationType type, string input)
     {
@@ -67,6 +67,7 @@ public sealed class Obfuscator
                 chars[i] = (char)('0' + (replacement >= original ? replacement + 1 : replacement));
             }
         }
+
         return new string(chars);
     }
 }

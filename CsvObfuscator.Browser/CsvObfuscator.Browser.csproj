@@ -4,6 +4,9 @@
         <OutputType>Exe</OutputType>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
         <Nullable>enable</Nullable>
+        <!-- Avalonia's Skia renderer supplies a native WebAssembly library. Link it
+             into dotnet.native.wasm so SKImageInfo and the rest of SkiaSharp load. -->
+        <WasmBuildNative>true</WasmBuildNative>
     </PropertyGroup>
 
     <ItemGroup>

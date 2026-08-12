@@ -81,7 +81,9 @@ jobs:
       - name: Install WebAssembly tools
         run: dotnet workload install wasm-tools
       - name: Publish Browser application
-        run: dotnet publish CsvObfuscator.Browser/CsvObfuscator.Browser.csproj -c Release -o publish/browser
+        run: >-
+          dotnet publish CsvObfuscator.Browser/CsvObfuscator.Browser.csproj
+          -c Release -o publish/browser -p:WasmBuildNative=true
       - name: Package Browser application
         run: |
           cd publish/browser

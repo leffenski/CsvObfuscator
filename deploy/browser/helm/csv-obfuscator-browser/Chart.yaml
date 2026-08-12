@@ -1,0 +1,6 @@
+apiVersion: v2
+name: csv-obfuscator-browser
+description: Helm chart for the CsvObfuscator Avalonia Browser application
+type: application
+version: 0.1.0
+appVersion: "0.1.0"

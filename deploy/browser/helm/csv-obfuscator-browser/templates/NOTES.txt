@@ -1,0 +1,7 @@
+CsvObfuscator Browser has been deployed.
+
+{{- if not .Values.ingress.enabled }}
+To access it locally:
+  kubectl port-forward svc/{{ include "csv-obfuscator-browser.fullname" . }} 8080:{{ .Values.service.port }}
+  open http://127.0.0.1:8080/
+{{- end }}

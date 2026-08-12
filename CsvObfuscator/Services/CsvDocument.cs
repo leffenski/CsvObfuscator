@@ -30,32 +30,53 @@ public sealed class CsvDocument
                     raw.Append(c);
                     if (i + 1 < text.Length && text[i + 1] == '"')
                     {
-                        raw.Append('"'); value.Append('"'); i += 2; continue;
+                        raw.Append('"');
+                        value.Append('"');
+                        i += 2;
+                        continue;
                     }
-                    inQuotes = false; i++; continue;
+
+                    inQuotes = false;
+                    i++;
+                    continue;
                 }
-                raw.Append(c); value.Append(c); i++; continue;
+
+                raw.Append(c);
+                value.Append(c);
+                i++;
+                continue;
             }
 
             if (c == '"' && raw.Length == 0)
             {
-                quoted = true; inQuotes = true; raw.Append(c); i++; continue;
+                quoted = true;
+                inQuotes = true;
+                raw.Append(c);
+                i++;
+                continue;
             }
 
             if (c == delimiter)
             {
-                AddField(); i++; continue;
+                AddField();
+                i++;
+                continue;
             }
 
             if (c is '\r' or '\n')
             {
                 string ending = c == '\r' && i + 1 < text.Length && text[i + 1] == '\n' ? "\r\n" : c.ToString();
-                AddRecord(ending); i += ending.Length; continue;
+                AddRecord(ending);
+                i += ending.Length;
+                continue;
             }
-            raw.Append(c); value.Append(c); i++;
+
+            raw.Append(c);
+            value.Append(c);
+            i++;
         }
 
-        if (fields.Count > 0 || raw.Length > 0 || value.Length > 0 || text.Length > 0 && text[^1] == delimiter)
+        if (fields.Count > 0 || raw.Length > 0 || value.Length > 0 || (text.Length > 0 && text[^1] == delimiter))
             AddRecord(string.Empty);
 
         return inQuotes
@@ -72,15 +93,18 @@ public sealed class CsvDocument
         void AddField()
         {
             fields.Add(new CsvField(value.ToString(), raw.ToString(), quoted));
-            value.Clear(); raw.Clear(); quoted = false;
+            value.Clear();
+            raw.Clear();
+            quoted = false;
         }
     }
 
-    public string Render(Func<int, int, string, string> transform)
+    public string Render(Func<int, int, string, string> transform, CancellationToken cancellationToken = default)
     {
         var output = new StringBuilder();
         for (int rowIndex = 0; rowIndex < Records.Count; rowIndex++)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             var record = Records[rowIndex];
             for (int columnIndex = 0; columnIndex < record.Fields.Count; columnIndex++)
             {
@@ -89,8 +113,10 @@ public sealed class CsvDocument
                 string transformed = transform(rowIndex, columnIndex, field.Value);
                 output.Append(field.Quoted ? '"' + transformed.Replace("\"", "\"\"") + '"' : transformed);
             }
+
             output.Append(record.LineEnding);
         }
+
         return output.ToString();
     }
 
@@ -103,17 +129,26 @@ public sealed class CsvDocument
         {
             if (text[i] == '"')
             {
-                if (quoted && i + 1 < text.Length && text[i + 1] == '"') { i++; continue; }
-                quoted = !quoted; continue;
+                if (quoted && i + 1 < text.Length && text[i + 1] == '"')
+                {
+                    i++;
+                    continue;
+                }
+
+                quoted = !quoted;
+                continue;
             }
+
             if (!quoted && (text[i] == '\r' || text[i] == '\n')) break;
 
             if (!quoted && counts.ContainsKey(text[i]))
                 counts[text[i]]++;
         }
+
         return counts.OrderByDescending(x => x.Value).First().Key;
     }
 }
 
 public sealed record CsvRecord(List<CsvField> Fields, string LineEnding);
+
 public sealed record CsvField(string Value, string Raw, bool Quoted);

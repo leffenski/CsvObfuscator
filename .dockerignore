@@ -1,0 +1,9 @@
+.git
+.idea
+.github
+.agents
+.codex
+**/bin
+**/obj
+publish
+CsvObfuscator.sln.DotSettings.user
